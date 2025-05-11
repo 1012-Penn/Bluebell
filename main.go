@@ -5,6 +5,7 @@ import (
 	"bluebell/dao/mysql"
 	"bluebell/dao/redis"
 	"bluebell/logger"
+	"bluebell/logic"
 	"bluebell/pkg/snowflake"
 	"bluebell/router"
 	"bluebell/setting"
@@ -55,6 +56,8 @@ func main() {
 		fmt.Printf("init validator trans failed, err:%v\n", err)
 		return
 	}
+	// 初始化Kafka生产者（示例：本地kafka，topic为like_topic）
+	logic.InitKafkaWriter([]string{"localhost:9092"}, "like_topic")
 	// 注册路由
 	r := router.SetupRouter(setting.Conf.Mode)
 	err := r.Run(fmt.Sprintf(":%d", setting.Conf.Port))
