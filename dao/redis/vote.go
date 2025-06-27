@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"bluebell/dao/mysql"
 	"context"
 	"errors"
 	"math"
@@ -168,5 +169,21 @@ func VoteForPost(userID, postID string, value float64) error {
 	// err: 错误变量
 	// 命名逻辑：err（error的缩写）
 	_, err := pipeline.Exec(context.Background())
-	return err
+	if err != nil {
+		return err
+	}
+
+	// ==================== 第七步：异步更新MySQL ====================
+	// 异步保存投票数据到MySQL，避免影响Redis性能
+	go func() {
+		// 转换参数类型
+		postIDInt, _ := strconv.ParseInt(postID, 10, 64)
+		userIDInt, _ := strconv.ParseInt(userID, 10, 64)
+		voteValueInt := int8(value)
+
+		// 保存到MySQL
+		_ = mysql.SaveVoteData(postIDInt, userIDInt, voteValueInt)
+	}()
+
+	return nil
 }

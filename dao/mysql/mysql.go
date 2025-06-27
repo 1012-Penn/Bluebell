@@ -49,3 +49,16 @@ func Close() {
 	// 关闭数据库连接，忽略可能的错误
 	_ = db.Close()
 }
+
+// SaveVoteData 保存投票数据到MySQL
+// 参数 postID: 帖子ID
+// 参数 userID: 用户ID
+// 参数 voteValue: 投票值（1=赞成，-1=反对）
+// 返回值: 错误信息，成功时返回nil
+func SaveVoteData(postID, userID int64, voteValue int8) error {
+	// 使用REPLACE INTO实现插入或更新
+	// 适配现有表结构：post_vote表，字段为post_id, user_id, vote_type
+	sqlStr := `REPLACE INTO post_vote(post_id, user_id, vote_type) VALUES(?, ?, ?)`
+	_, err := db.Exec(sqlStr, postID, userID, voteValue)
+	return err
+}
