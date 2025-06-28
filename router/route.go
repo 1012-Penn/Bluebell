@@ -7,6 +7,7 @@ import (
 	"bluebell/logger"      // 导入日志包，用于记录应用日志
 	"bluebell/middlewares" // 导入中间件包，提供认证等功能
 	"net/http"             // 导入HTTP包，提供HTTP状态码等常量
+	"time"                 // 导入time包，用于时间处理
 
 	ginSwagger "github.com/swaggo/gin-swagger"   // 导入Swagger文档生成器
 	"github.com/swaggo/gin-swagger/swaggerFiles" // 导入Swagger静态文件处理器
@@ -32,9 +33,10 @@ func SetupRouter(mode string) *gin.Engine {
 	// 注册全局中间件
 	// GinLogger(): 记录HTTP请求日志
 	// GinRecovery(true): 从panic中恢复，避免程序崩溃
-	// 注意：速率限制中间件被注释掉了，可以根据需要启用
-	//r.Use(logger.GinLogger(), logger.GinRecovery(true), middlewares.RateLimitMiddleware(2*time.Second, 1))
-	r.Use(logger.GinLogger(), logger.GinRecovery(true))
+	// RateLimitMiddleware: 基于令牌桶算法的限流中间件
+	// 参数：每100ms填充一个令牌，令牌桶容量为100
+	// 这意味着：QPS限制为10，突发处理能力为100
+	r.Use(logger.GinLogger(), logger.GinRecovery(true), middlewares.RateLimitMiddleware(100*time.Millisecond, 100))
 
 	// 健康检查接口 - 用于检测服务是否正常运行
 	r.GET("/ping", func(c *gin.Context) {
